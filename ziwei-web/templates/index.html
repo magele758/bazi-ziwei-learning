@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>紫微斗数 · 全量排盘（iztro）</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <h1>紫微斗数 · 全量排盘</h1>
+      <p class="sub">引擎：<strong>py-iztro</strong>（<a href="https://github.com/x-haose/py-iztro" target="_blank" rel="noopener">Python 封装</a> 的 <a href="https://github.com/SylarLong/iztro" target="_blank" rel="noopener">iztro</a>），含主星、辅星、杂曜、亮度、四化、长生/博士/将前/岁前诸神、大限年龄段等，与常见「专业排盘软件」数据源同级。</p>
+    </header>
+
+    <section class="card guide">
+      <div class="plain-box">
+        <h4>紫微这一张表，用最笨的话怎么说？</h4>
+        <ul>
+          <li><strong>十二宫</strong>：把人生切成十二类题目——自己、配偶、钱、工作、健康、朋友……每格一个主题。<span class="li-plain">一眼看懂：想象成十二个文件夹，每个文件夹只讨论一类人生题目；整张盘=十二个格子拼成一圈。</span></li>
+          <li><strong>宫干支</strong>：这一格的天干地支「门牌号」，用来安星、论生克。<span class="li-plain">一眼看懂：没有这门牌，星就不知道该「落户」在哪；后面看星与星的生克会用到天干。</span></li>
+          <li><strong>主星</strong>：主角级的星；后面方括号里是<strong>庙旺平陷</strong>，可理解成这颗星在这个格子里「发挥好还是憋屈」的粗略档位。<span class="li-plain">一眼看懂：主星像主演；庙旺像舞台灯光明亮，陷像灯暗——仍是符号，不是人品判决。</span></li>
+          <li><strong>化禄权科忌</strong>：四化，像给星加「增益、掌权、名声、纠缠/压力」的滤镜。<span class="li-plain">一眼看懂：禄偏顺、权偏硬、科偏名、忌偏卡——用来描述张力，不是单字定生死。</span></li>
+          <li><strong>辅星 / 杂曜</strong>：配角与小标签，补细节、补人事象。<span class="li-plain">一眼看懂：主星定基调，辅星杂曜像弹幕评论，补一句「还有这档子事」。</span></li>
+          <li><strong>长生12 / 博士12 / 将前12 / 岁前12</strong>：四套「神煞/神将」类符号，古法里当吉凶参考，现代多当文化注脚。<span class="li-plain">一眼看懂：四套不同「标签系统」，初学当附录；不必先背全名。</span></li>
+          <li><strong>大限</strong>：这一宫在哪些岁数段当「十年主角」；<strong>小限岁数</strong>：与该宫相关的一组年龄提示。<span class="li-plain">一眼看懂：大限=这格宫位「当主角的十年」；小限=流年岁数提示，用来和流年对照。</span></li>
+          <li><strong>命主 / 身主</strong>：两颗「总代表」星名，不是真人；<strong>身宫</strong>标在你后天更在意的主题格。<span class="li-plain">一眼看懂：命主身主是盘面的「总标题星」，不等于你本人；身宫格子常读作后天重心。</span></li>
+          <li><strong>十二宫题名速览</strong>：命宫=自己；兄弟=手足与同辈；夫妻=配偶感情；子女=子女与创作延伸；财帛=收入与花钱观；疾厄=体质与健康象（非看病）；迁移=外出、异地、外界眼光；仆役=朋友、同事、下属人缘；官禄=事业、学业、社会身份；田宅=房产与家庭根基；福德=心态、嗜好、精神享受；父母=长辈与上级缘分。<span class="li-plain">一眼看懂：先记住「命宫财帛官禄夫妻」四个最常用的，其余当扩展包。</span></li>
+        </ul>
+      </div>
+      <details class="details-block">
+        <summary>时辰怎么映射？（0–23 时 → iztro 0–12）</summary>
+        <p class="muted-note"><strong>23点</strong>视为<strong>晚子时</strong>（序号 12），<strong>0 点</strong>视为<strong>早子时</strong>（序号 0）；其余每2 小时一时辰，与多数排盘一致。若您学的是「早晚子换日柱」另一套，请自行在纸上校正。</p>
+      </details>
+      <details class="details-block">
+        <summary>依赖与环境说明 · 若一点查询就闪退</summary>
+        <p class="muted-note">需安装 <code>py-iztro</code>（依赖 <code>pythonmonkey</code>）。若安装失败请看 <a href="https://github.com/x-haose/py-iztro" target="_blank" rel="noopener">py-iztro</a>。</p>
+        <p class="muted-note"><strong>重要：</strong>不要用 <code>flask run</code> 默认<strong>双进程热重载</strong>跑本服务；也不要在代码里开启 <code>use_reloader=True</code>。重载子进程常与内嵌 JS 引擎冲突，表现为<strong>一点「排盘」进程直接消失</strong>。本仓库 <code>python app.py</code> 已关闭 reloader；若你自行启动，请加 <code>--no-reload</code> 或等价选项。</p>
+      </details>
+    </section>
+
+    <form class="card" method="post">
+      <div class="grid">
+        <label>年<input type="number" name="year" required placeholder="1990" /></label>
+        <label>月<input type="number" name="month" min="1" max="12" required placeholder="5" /></label>
+        <label>日<input type="number" name="day" min="1" max="31" required placeholder="15" /></label>
+        <label>时<input type="number" name="hour" min="0" max="23" value="12" /></label>
+        <label>分<input type="number" name="minute" min="0" max="59" value="0" /></label>
+        <label class="span-2">性别（必选）
+          <select name="gender" required>
+            <option value="">请选择</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+          </select>
+        </label>
+      </div>
+      <button type="submit">全量排盘</button>
+    </form>
+
+    {% if error %}
+    <p class="err">{{ error }}</p>
+    {% endif %}
+
+    {% if result %}
+    <section class="card out">
+      <h2>命盘总览</h2>
+      <table class="kv-mini">
+        <tbody>
+          <tr><th>输入</th><td>{{ result.solar_input }} · {{ result.gender }} · 时辰槽 {{ result.time_index_used }}</td><td class="mean">您填的时间；性别决定安星顺逆；时辰槽是程序内部 0–12 编码（含早晚子）。<strong>白话：</strong>这一行=「原始输入 + 程序怎么理解你的时辰」。</td></tr>
+          <tr><th>阳历</th><td>{{ result.solar_date }}</td><td class="mean">公历日期，日常用的日历。<strong>白话：</strong>手机日历上那一天。</td></tr>
+          <tr><th>农历</th><td>{{ result.lunar_date }}（{{ result.chinese_date }}）</td><td class="mean">换算后的农历与中文写法，方便和老黄历对照。<strong>白话：</strong>和家里老人说的「阴历」对齐用。</td></tr>
+          <tr><th>命宫</th><td>{{ result.ming_palace_summary }}；命宫位地支 {{ result.earthly_branch_of_soul_palace }}</td><td class="mean">「命宫」=整张盘里代表<strong>你自己</strong>的那一格；摘要里是该格干支 + 落在里面的主星。<strong>白话：</strong>先找命宫那一行大表，再回来看这里的摘要是否对得上。</td></tr>
+          <tr><th>命主</th><td>{{ result.soul }}</td><td class="mean">传统里附在命上的<strong>主星代号</strong>，形容一种先天模板，不是您本人姓名。<strong>白话：</strong>一颗「冠名星」，别当成身份证名字。</td></tr>
+          <tr><th>身宫地支</th><td>{{ result.earthly_branch_of_body_palace }}</td><td class="mean">身宫落在哪个地支宫，多用来参考<strong>后天努力、中年后重心</strong>落在哪类人生题目。<strong>白话：</strong>在大表里找带「身」标记的那一行，就是身宫落点。</td></tr>
+          <tr><th>身主</th><td>{{ result.body }}</td><td class="mean">身宫对应的「身主星」名，同样是符号，不是真人。<strong>白话：</strong>与「命主」配对出现，看后天侧重的模板星。</td></tr>
+          <tr><th>五行局</th><td>{{ result.five_elements_class }}</td><td class="mean">安紫微时要用的「水二局、木三局…」那一套参数，决定星曜怎么布。<strong>白话：</strong>排盘引擎的内部档位，知道「有这个东西」即可。</td></tr>
+          <tr><th>星座 / 生肖</th><td>{{ result.sign }} / {{ result.zodiac }}</td><td class="mean">西方星座 + 属相，和民俗日历对照用，与斗数星曜是两套符号。<strong>白话：</strong>聊天社交用标签，和斗数主星无直接换算公式。</td></tr>
+          <tr><th>时辰</th><td>{{ result.time }}（{{ result.time_range }}）</td><td class="mean">您落在十二时辰的哪一段（含早晚子时划分）。<strong>白话：</strong>核对「我是午时还是未时」——差一个时辰整张盘会变。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>十二宫全表</h3>
+      <div class="plain-box">
+        <h4>列说明（对着表从左往右看）</h4>
+        <dl class="mini-dl">
+          <dt>宫位</dt>
+          <dd>这一行讨论的人生主题。标「命」=命宫；「身」= 身宫落此；「来因」= iztro 标记的来因宫（流派概念，可理解为因果/来处主题）。<p class="plain-one">一眼看懂：读表时先看第一列「这是哪一类人生题目」，再看后面星曜。</p></dd>
+          <dt>宫干支</dt>
+          <dd>这一宫的天干+地支，像门牌，用来定星、论关系。<p class="plain-one">一眼看懂：两个字连写；干在上论生克，支定宫位方位序列。</p></dd>
+          <dt>主星</dt>
+          <dd>主角星；<strong>[庙/旺/得地/平/陷…]</strong>是亮度；<strong>化禄/权/科/忌</strong>是四化加持或加压。<p class="plain-one">一眼看懂：这一格谁唱主角；亮度=舞台条件；四化=临时剧情buff。</p></dd>
+          <dt>辅星</dt>
+          <dd>辅助星曜，补人事、补吉凶象。<p class="plain-one">一眼看懂：主角旁边的配角台词，有时比主角还抢戏，仍要整格一起看。</p></dd>
+          <dt>杂曜</dt>
+          <dd>小星、杂星一堆简称，古法里当细节注脚。<p class="plain-one">一眼看懂：密密麻麻的小标签，初学可略读，以后看书再对名词。</p></dd>
+          <dt>长生12</dt>
+          <dd>十二长生神煞名之一，读作「状态标签」，别当成医学。<p class="plain-one">一眼看懂：又是「长生沐浴冠带…」那种刻度词，和八字地势类似，别当体检报告。</p></dd>
+          <dt>博士12 / 将前12 / 岁前12</dt>
+          <dd>三套神煞/神将名号，用来细分年运、将星类象，当作文化符号即可。<p class="plain-one">一眼看懂：三套不同「神煞菜单」，列在一起是为了和专业盘对齐。</p></dd>
+          <dt>大限</dt>
+          <dd>这一宫当「十年大运主角」时对应的干支与大约岁数区间。<p class="plain-one">一眼看懂：这格宫位「承包」哪段十岁人生；换大限像换电视剧一季。</p></dd>
+          <dt>小限岁数</dt>
+          <dd>与该宫相关的一组年龄提示（库内算法输出，供对照流年）。<p class="plain-one">一眼看懂：告诉你哪些岁数和这一格关系更密，用来查流年时有个抓手。</p></dd>
+        </dl>
+      </div>
+      <p class="table-hint"><strong>主星「—」：</strong>不是程序坏了，是这一格<strong>没有十四主星坐镇</strong>，传统上要「借对宫」镜像参考，或看辅星杂曜组合。<strong>白话：</strong>这一格没有主演，戏份要从对面格子「借剧本」来读；单格下结论最容易翻车，必须整圈联动。</p>
+      <div class="table-scroll">
+        <table class="tbl tbl-full">
+          <thead>
+            <tr>
+              <th>宫位</th>
+              <th>宫干支</th>
+              <th>主星</th>
+              <th>辅星</th>
+              <th>杂曜</th>
+              <th>长生12</th>
+              <th>博士12</th>
+              <th>将前12</th>
+              <th>岁前12</th>
+              <th>大限</th>
+              <th>小限岁数</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in result.palaces_render %}
+            <tr class="{% if p.is_shen_gong_here %}row-body{% endif %} {% if p.is_original_palace %}row-laiyin{% endif %}">
+              <td>
+                {{ p.name }}
+                {% if p.name == '命宫' %}<span class="badge badge-ming">命</span>{% endif %}
+                {% if p.is_shen_gong_here %}<span class="badge">身</span>{% endif %}
+                {% if p.is_original_palace %}<span class="badge badge-ly">来因</span>{% endif %}
+              </td>
+              <td>{{ p.heavenly_stem }}{{ p.earthly_branch }}</td>
+              <td class="wrap-cell">{{ p.major_line }}</td>
+              <td class="wrap-cell">{{ p.minor_line }}</td>
+              <td class="wrap-cell small">{{ p.adjective_line }}</td>
+              <td>{{ p.changsheng12 }}</td>
+              <td>{{ p.boshi12 }}</td>
+              <td>{{ p.jiangqian12 }}</td>
+              <td>{{ p.suiqian12 }}</td>
+              <td class="wrap-cell small">{{ p.decadal_line }}</td>
+              <td class="wrap-cell small">{{ p.ages_line }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {% endif %}
+  </main>
+</body>
+</html>

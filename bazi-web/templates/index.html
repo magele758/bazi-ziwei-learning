@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>四柱八字推算</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <h1>四柱八字推算</h1>
+      <p class="sub">输入公历与性别，输出四柱、<strong>十神、藏干、地势</strong>、胎元命宫身宫参考，以及<strong>大运、流年（首步大运示例）</strong>。历法内核：<code>lunar_python</code>。</p>
+    </header>
+
+    <section class="card guide">
+      <h2>先用白话理解：八字在干什么？</h2>
+      <p class="lead">古人把出生那一刻的「时间」翻译成一套汉字密码：用<strong>天干地支</strong>把年、月、日、时各写成两个字，一共八个字，所以叫<strong>四柱八字</strong>。你可以把它想成一张「时间身份证」——不是科学预测，而是传统命理里用来讨论性格、运势起伏的一种符号系统。</p>
+      <ul class="bullets">
+        <li><strong>年柱</strong>：常对应祖辈、大环境、早年外界对你的影响（流派不同解读会有差别）。<span class="li-plain">一眼看懂：好比「你出生在什么年代、什么家庭氛围里」——别人先看到你的外包装。</span></li>
+        <li><strong>月柱</strong>：常对应父母兄弟、工作环境、社会角色——命理里叫「提纲」，分量很重。<span class="li-plain">一眼看懂：好比「你从小被期待长成什么样、在社会上拿哪张名片」——很多格局论法都先看月。</span></li>
+        <li><strong>日柱</strong>：天干叫<strong>日元 / 日主</strong>，常被当作「你自己」的符号；地支也常与婚姻宫相关。<span class="li-plain">一眼看懂：日干=剧本里的主角名字；日支=离你最近的那一格，也常用来聊亲密关系。</span></li>
+        <li><strong>时柱</strong>：常对应子女、晚年、事业结果、下半生的走向。<span class="li-plain">一眼看懂：好比「人生后半场、收尾方式、和下一代/成果的关系」。</span></li>
+      </ul>
+      <p class="muted-note">本页只做排盘与名词解释，不对人生下结论。不同老师对同一八字的解读可能不同。</p>
+
+      <details class="details-block">
+        <summary>算法说明：本程序具体怎么算出四柱？</summary>
+        <ol class="steps">
+          <li><strong>公历 → 农历与节气</strong>：用开源库 <code>lunar_python</code>（作者6tail，与许多万年历同源思路）把您输入的公历时间换成农历日期，并按历法规则处理<strong>节气</strong>（八字的「月」通常跟节气走，不是农历初一换月）。<span class="step-plain">白话：您填的是手机日历上的日子；程序再算出「节气月」——八字里的「几月」常指从某个节气到下一个节气这一段。</span></li>
+          <li><strong>年柱</strong>：按该库规则以立春等为年界（不是正月初一）定年干支。<span class="step-plain">白话：过年属相广告常按春节；很多八字排盘按立春换年，本程序跟库一致。</span></li>
+          <li><strong>月柱</strong>：按节气月定月支，再用「五虎遁」类规则由年干推出月干。<span class="step-plain">白话：先定「月支」（节气决定），再按口诀从年干推出「月干」，凑成两个字。</span></li>
+          <li><strong>日柱</strong>：按连续日期循环六十甲子，算出当日干支。<span class="step-plain">白话：像日历每天印一个「甲子、乙丑…」编号，出生日落在哪一天就抄哪两个字。</span></li>
+          <li><strong>时柱</strong>：把 24 小时划成十二时辰，定时支；再用「五鼠遁」类规则由日干推出时干。<span class="step-plain">白话：先定你是「子时、丑时…」哪一段，再按口诀从日干推出时干。</span></li>
+          <li><strong>纳音 / 旬空</strong>：由四柱干支查表得出，是传统命理里的辅助信息。<span class="step-plain">白话：不改四柱，只是多查两张传统附表，给每柱贴标签。</span></li>
+        </ol>
+        <p class="muted-note"><strong>未做</strong>真太阳时（出生地经度校正）、<strong>未做</strong>「早子时 / 晚子时」手工分流；若您学习某派特殊规则，请以书本为准在纸面上校正。</p>
+      </details>
+
+      <details class="details-block">
+        <summary>这套八字算法「完整」吗？</summary>
+        <p class="lead"><strong>排盘与大运流年推算</strong>由 <code>lunar_python</code> 的 <code>EightChar</code> / <code>Yun</code> 模块完成，与常见桌面排盘在<strong>相同规则下</strong>应对齐。</p>
+        <p class="muted-note"><strong>本页已包含</strong>：四柱、纳音、旬空、五行计数；天干十神、地支藏干与支藏十神、十二长生地势；胎元、胎息、命卦干支、身宫干支（库内字段）；大运列表；首步实大运内10 年流年干支示例。</p>
+        <p class="muted-note"><strong>仍未做</strong>：真太阳时；早晚子时拆法切换；刑冲合害图解；神煞大全；流月流日流时；格局与断语生成。高阶论命需结合教材或专业软件继续。</p>
+      </details>
+
+      <details class="details-block">
+        <summary>名词小词典：结果里每一列是什么？</summary>
+        <dl class="dict">
+          <dt>干支</dt>
+          <dd>一个字是天干（甲乙丙丁…），一个字是地支（子丑寅卯…），两个字合在一起记一个时间单位。<p class="plain-one">一眼看懂：像「姓+名」两个符号钉在一个时间点上；八字就是四个时间点各钉一对符号。</p></dd>
+          <dt>纳音</dt>
+          <dd>把一对干支再映射成「海中金」「炉中火」这类五行意象，用于传统命理的辅助分析。<p class="plain-one">一眼看懂：在「甲子、丙寅」这类干支代号之外，再贴一个文艺一点的五行外号，古法里当辅助看，不是改你的日干。</p></dd>
+          <dt>旬空</dt>
+          <dd>六十甲子一轮里总有「轮空」的两个地支，叫旬空。命理里常用来描述「虚」「待填实」之类意象，初学者知道是查表附注即可。<p class="plain-one">一眼看懂：想象六十个座位轮着坐，每轮总有两个座位本轮不点名——命理借这个讲「空、待补」，别当成科学结论。</p></dd>
+          <dt>五行计数</dt>
+          <dd>把四柱八个字的五行粗略数一数，只看「多寡」，不作吉凶判断——是否平衡要配合全局分析，不能单看个数。<p class="plain-one">一眼看懂：只是数「金木水火土」出现几次；某行多≠一定好，某行少≠一定坏，要看搭配。</p></dd>
+        </dl>
+      </details>
+    </section>
+
+    <form class="card" method="post">
+      <div class="grid">
+        <label>年<input type="number" name="year" required placeholder="1990" /></label>
+        <label>月<input type="number" name="month" min="1" max="12" required placeholder="5" /></label>
+        <label>日<input type="number" name="day" min="1" max="31" required placeholder="15" /></label>
+        <label>时<input type="number" name="hour" min="0" max="23" value="12" /></label>
+        <label>分<input type="number" name="minute" min="0" max="59" value="0" /></label>
+        <label class="span-2">性别（排大运）
+          <select name="gender" required>
+            <option value="">请选择</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+          </select>
+        </label>
+      </div>
+      <button type="submit">全量排盘</button>
+    </form>
+
+    {% if error %}
+    <p class="err">{{ error }}</p>
+    {% endif %}
+
+    {% if result %}
+    <section class="card out">
+      <h2>排盘结果</h2>
+      <div class="plain-box">
+        <h4>这一页从上到下是什么？（超白话）</h4>
+        <dl class="mini-dl">
+          <dt>四柱八字</dt>
+          <dd>把出生时刻写成「年、月、日、时」四组汉字，每组一个天干+一个地支，共八个字。好比用密码记下你落地那一刻的「时间坐标」。<p class="plain-one">对照结果：页面上「四柱」那一行从左到右念完，就是八个字。</p></dd>
+          <dt>十神</dt>
+          <dd>以「日干」当「我」，看别的干支跟我是同类、生我、我生、克我、我克哪一种关系，给这种关系起名字（比肩、正印、七杀……）。用来描述人事、角色、矛盾，不是算命断定吉凶。<p class="plain-one">对照结果：在细表里找「天干十神」列——它回答「这一柱的天干，相对你自己是什么关系角色」。</p></dd>
+          <dt>藏干 / 支藏十神</dt>
+          <dd>每个地支里还藏着1～3个天干。把藏干再换算成十神，就看这一柱背后还有哪几种力量在掺和。<p class="plain-one">对照结果：「地支藏干」是里子，「支藏十神」把那些里子也换成十神语言。</p></dd>
+          <dt>地势（十二长生）</dt>
+          <dd>看日干落在这一支上，处于「长生、沐浴、冠带…」哪一站，像给能量标了个刻度：旺一点还是弱一点，是符号语言。<p class="plain-one">对照结果：细表最右一列；可理解成「日主在这一支上舒服不舒服」的粗略刻度，不是医学。</p></dd>
+          <dt>胎元、胎息</dt>
+          <dd>传统推演里「受孕前后」的辅助柱，用来补充看根气、渊源，现代多作参考。<p class="plain-one">一眼看懂：多出来的两柱「附录」，不是四柱本体；不懂可先跳过。</p></dd>
+          <dt>命宫、身宫（本页为八字体系里的两柱）</dt>
+          <dd>与紫微的命宫不是同一套算法；这里是八字流派里附加的干支组合，可作辅助读本。<p class="plain-one">一眼看懂：名字和紫微都叫命宫，但算法不同；不要拿八字命宫去对紫微命宫硬套。</p></dd>
+          <dt>大运</dt>
+          <dd>人生按十年一大段换一组「运程干支」。童限是还没进入第一步大运前的小段童年运。<p class="plain-one">对照结果：大运表里每一行对应一个十年主题包，「童限」是正式进场前的缓冲段。</p></dd>
+          <dt>流年</dt>
+          <dd>每一「公历年」对应一个干支，像当年的天气标签，常拿来和大运、原局一起看。<p class="plain-one">对照结果：流年表「公历年→流年干支」；只看某一年的代号，像给那年贴个标签。</p></dd>
+          <dt>纳音</dt>
+          <dd>给每一柱干支再贴一个「海中金」「炉中火」之类的意象名，古法里当辅助五行看。<p class="plain-one">对照结果：纳音表里「纳音」列，四柱各一行。</p></dd>
+          <dt>旬空</dt>
+          <dd>这一轮六十甲子轮空的那两个地支，传统里说「空」象，多指虚、待补、计划赶不上变化之类，初学者当备注看即可。<p class="plain-one">对照结果：纳音表最右「旬空」列；先当脚注，不必背。</p></dd>
+        </dl>
+      </div>
+
+      <p><span class="k">公历</span> {{ result.solar }} · <span class="k">性别</span> {{ result.gender }}</p>
+      <span class="field-tip">您填的钟表时间；性别决定大运顺逆，必须选对。</span>
+      <p><span class="k">农历</span> {{ result.lunar_cn }}</p>
+      <span class="field-tip">程序把公历换算成的农历展示，方便和万年历对照。</span>
+      <p><span class="k">四柱</span> <strong>{{ result.pillars_joined }}</strong></p>
+      <span class="field-tip">从左到右、从年到时，共八个字，就是您的「八字原局」。</span>
+
+      <div class="explain-result">
+        <h3>这次结果怎么读？（白话）</h3>
+        <p>上面八个字依次为<strong>年 · 月 · 日 · 时</strong>。可以粗读为：</p>
+        <ul class="bullets">
+          <li>前两字 <strong>{{ result.pillars['年'] }}</strong> 是年柱——看大环境、家庭背景的「底色」。<span class="li-plain">白话：对外自我介绍时最先被联想到的那层背景。</span></li>
+          <li>接下来 <strong>{{ result.pillars['月'] }}</strong> 是月柱——看成长阶段、外界要求你的样子。<span class="li-plain">白话：青少年到社畜过渡期，外界给你贴的标签。</span></li>
+          <li>再 <strong>{{ result.pillars['日'] }}</strong> 是日柱——中间天干是你自己的「日主符号」，地支可兼看亲密关系宫位。<span class="li-plain">白话：中间那个天干才是「我」；右边地支像内心小房间，伴侣宫常用参考。</span></li>
+          <li>最后 <strong>{{ result.pillars['时'] }}</strong> 是时柱——看后半生、子女、收尾与成果感。<span class="li-plain">白话：人生下半场与「交出什么成果」相关的格子。</span></li>
+        </ul>
+        <p class="muted-note">下方已展开十神、大运流年；刑冲合害与神煞需另学另排。</p>
+      </div>
+
+      <h3>四柱细表（十神 · 藏干 · 地势）</h3>
+      <div class="plain-box">
+        <h4>表头白话</h4>
+        <dl class="mini-dl">
+          <dt>柱</dt>
+          <dd>年 / 月 / 日 / 时，哪一柱。<p class="plain-one">一眼看懂：四行里找「日」那一行——通常最重要，因为日干代表「我」。</p></dd>
+          <dt>干支</dt>
+          <dd>这一柱的天干加地支，两个字。<p class="plain-one">一眼看懂：两个汉字并排，没有标点；读法总是「干在前、支在后」。</p></dd>
+          <dt>天干十神</dt>
+          <dd>这一柱的「天干」相对日干是什么十神。日柱天干那一格会显示「日主」，表示「我自己」这一干。<p class="plain-one">一眼看懂：除了日柱写「日主」，其余三柱都在回答「这个天干在我剧本里扮演什么亲戚/上司/财星」这类角色名。</p></dd>
+          <dt>地支藏干</dt>
+          <dd>地支里藏了哪些天干，空格隔开。<p class="plain-one">一眼看懂：地支是盒子，里面可能藏1～3个天干；空格表示「不止一个」。</p></dd>
+          <dt>支藏十神</dt>
+          <dd>那些藏干分别对应什么十神，从日干视角换算。<p class="plain-one">一眼看懂：把盒子里藏的天干，也换成「十神昵称」，看暗里还有谁在发力。</p></dd>
+          <dt>地势</dt>
+          <dd>日干在这一支上的十二长生状态（旺衰刻度）。<p class="plain-one">一眼看懂：十二长生是十二个词（长生、沐浴…），像温度计刻度，不是吉凶判决书。</p></dd>
+        </dl>
+        <p class="muted-note" style="margin:10px 0 0;font-size:0.82rem;">十神昵称速记（相对日干）：比肩劫财=同我；正印偏印=生我；食神伤官=我生；正财偏财=我克；正官七杀=克我。具体吉凶要看全局组合。</p>
+      </div>
+      <div class="table-scroll">
+        <table class="tbl tbl-wide">
+          <thead>
+            <tr>
+              <th>柱</th>
+              <th>干支</th>
+              <th>天干十神</th>
+              <th>地支藏干</th>
+              <th>支藏十神</th>
+              <th>地势</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in result.pillar_table %}
+            <tr>
+              <td>{{ row.label }}</td>
+              <td>{{ row.ganzhi }}</td>
+              <td>{{ row.shishen_gan }}</td>
+              <td>{{ row.canggan }}</td>
+              <td>{{ row.shishen_zhi }}</td>
+              <td>{{ row.dishi }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <p><span class="k">胎元</span> {{ result.taiyuan }} · <span class="k">胎息</span> {{ result.taixi }}</p>
+      <span class="field-tip">胎元、胎息是传统「怀胎/气息」推演出来的两柱，用来补充看先天根气，不是医学概念。</span>
+      <p><span class="k">命宫（八字法）</span> {{ result.minggong_bazi }} · <span class="k">身宫</span> {{ result.shengong_bazi }}</p>
+      <span class="field-tip">这里的命宫、身宫是<strong>八字体系</strong>里起的两柱；和下面紫微命盘的「命宫」不是同一个程序、不要混着对读。</span>
+
+      <h3>大运</h3>
+      <div class="plain-box">
+        <h4>大运怎么读</h4>
+        <ul class="plain-list">
+          <li><strong>童限</strong>：还没正式进入第一步大运之前，用的「童年段」标记。<span class="li-plain">白话：大运正式「开机」前的片头曲，有的盘会单独标出来。</span></li>
+          <li><strong>顺行 / 逆行</strong>：大运干支往前数还是往后数，由出生年阴阳与性别共同决定。<span class="li-plain">白话：同样八字，男顺女逆或相反，规则是死的；您只要选对性别，程序会替您算。</span></li>
+          <li><strong>起运时间</strong>：从出生后多久「算正式进入第一段大运」，用年月日表示，古法近似值。<span class="li-plain">白话：「几岁起运」不是心理学年龄，是排盘术语：从哪天起把第一段十年大运算到你头上。</span></li>
+          <li><strong>表头怎么读</strong>：<strong>序</strong>=第几步（第几个十年包）；<strong>大运干支</strong>=这十年的主题代号；<strong>年份</strong>=这十年落在哪些公历年；<strong>岁数</strong>=虚岁区间，和老黄历计岁一致。<span class="li-plain">白话：把每一行想成「第N个十年套餐 + 套餐名字 + 大概哪几年」。</span></li>
+        </ul>
+      </div>
+      <p class="muted-note">起运：约 <strong>{{ result.yun_meta.start_year }}</strong> 年 <strong>{{ result.yun_meta.start_month }}</strong> 月 <strong>{{ result.yun_meta.start_day }}</strong> 天 ·排运方向：<strong>{% if result.yun_meta.forward %}顺行{% else %}逆行{% endif %}</strong> ·
+        起运附近公历：<strong>{{ result.yun_meta.start_solar }}</strong></p>
+      <div class="table-scroll">
+        <table class="tbl">
+          <thead><tr><th>序</th><th>大运干支</th><th>年份</th><th>岁数</th></tr></thead>
+          <tbody>
+            {% for d in result.dayun %}
+            <tr>
+              <td>{{ d.index }}</td>
+              <td>{{ d.ganzhi }}</td>
+              <td>{{ d.years }}</td>
+              <td>{{ d.ages }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <h3>流年（首步实大运 · 10 年示例）</h3>
+      <div class="plain-box" style="margin-bottom:10px;">
+        <h4>这张流年小表列啥？</h4>
+        <dl class="mini-dl">
+          <dt>大运</dt>
+          <dd>这一行流年挂在哪一个「十年大运套餐」下面。<p class="plain-one">白话：先看左边大运名，再看右边每一年。</p></dd>
+          <dt>公历年</dt>
+          <dd>您日常用的日历年份。<p class="plain-one">白话：2024、2025 这种数字。</p></dd>
+          <dt>虚岁</dt>
+          <dd>传统命理常用的年龄计数，与周岁不同。<p class="plain-one">白话：别和身份证周岁较劲，这里跟库算法走，用来和老书对照。</p></dd>
+          <dt>流年干支</dt>
+          <dd>该公历年对应的甲子代号。<p class="plain-one">白话：这一年的「天气标签」，常拿它和八字原局、大运一起比对。</p></dd>
+        </dl>
+      </div>
+      <p class="muted-note" style="margin:0 0 10px;font-size:0.86rem;">流年=按<strong>公历年</strong>逐年换的干支。下面只列出<strong>第一个「非童限」大运</strong>里的10 个连续年份，帮您对照「某年是什么干支」。虚岁是传统计岁方式（出生即一岁或过年加一岁，依库内算法）。</p>
+      <div class="table-scroll">
+        <table class="tbl">
+          <thead><tr><th>大运</th><th>公历年</th><th>虚岁</th><th>流年干支</th></tr></thead>
+          <tbody>
+            {% for ln in result.liunian_first_yun %}
+            <tr>
+              <td>{{ ln.dayun_gz }}</td>
+              <td>{{ ln.year }}</td>
+              <td>{{ ln.age }}</td>
+              <td>{{ ln.ganzhi }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <h3>纳音与旬空</h3>
+      <div class="plain-box" style="margin-bottom:10px;">
+        <h4>这张表四列各是什么？</h4>
+        <dl class="mini-dl">
+          <dt>柱</dt>
+          <dd>年、月、日、时四行。<p class="plain-one">白话：和上面四柱同一顺序。</p></dd>
+          <dt>干支</dt>
+          <dd>该柱的天干地支。<p class="plain-one">白话：核对用——应和四柱细表完全一致。</p></dd>
+          <dt>纳音</dt>
+          <dd>该柱的纳音五行外号。<p class="plain-one">白话：多一个传统标签，有些流派爱用，有些不用。</p></dd>
+          <dt>旬空</dt>
+          <dd>该柱所在旬中轮空的地支（或相关表述，依库输出）。<p class="plain-one">白话：当小字注释；初学可先看纳音，旬空以后看书再消化。</p></dd>
+        </dl>
+      </div>
+      <p class="muted-note" style="margin:0 0 10px;font-size:0.86rem;">纳音给每柱一个「五行意象名」；旬空标出这一轮里「落空」的两个地支，多作辅助读法。</p>
+      <table class="tbl">
+        <thead><tr><th>柱</th><th>干支</th><th>纳音</th><th>旬空</th></tr></thead>
+        <tbody>
+          {% for key in ['年','月','日','时'] %}
+          <tr>
+            <td>{{ key }}</td>
+            <td>{{ result.pillars[key] }}</td>
+            <td>{{ result.nayin[key] }}</td>
+            <td>{{ result.xunkong[key] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p><span class="k">生肖</span> {{ result.shengxiao }}</p>
+      <span class="field-tip">通常看<strong>年柱地支</strong>定属相，和春节/立春换年有关，程序与库规则一致。</span>
+      <p><span class="k">时辰地支</span> {{ result.time_zhi }}</p>
+      <span class="field-tip">出生时刻落在十二时辰的哪一段，就对应哪个地支（子丑寅卯…）。</span>
+      <p><span class="k">五行计数</span>（天干+地支，仅数个数）</p>
+      <span class="field-tip">把八个字拆开数金木水火土各出现几次，只看「多寡分布」，不能直接当吉凶结论。</span>
+      <ul class="wx">
+        {% for el, n in result.wuxing.items()|sort %}
+        <li>{{ el }}：{{ n }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  </main>
+</body>
+</html>
