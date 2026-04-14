@@ -1,5 +1,8 @@
 # 八字 + 紫微 合并安装（子项目 requirements 的并集）
 -r bazi-web/requirements.txt
 -r ziwei-web/requirements.txt
+flask-wtf>=1.2
+flask-limiter>=3.5
+gunicorn>=22
 # 自检
 pytest>=8.0

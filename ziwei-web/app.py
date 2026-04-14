@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
 
 from flask import Flask, render_template, request
@@ -11,78 +10,81 @@ _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
+_ZW_DIR = Path(__file__).resolve().parent
+if str(_ZW_DIR) not in sys.path:
+    sys.path.insert(0, str(_ZW_DIR))
+
 from common.ai_report import AiReportError, generate_ziwei_report
+from common.birth_form import parse_birth_form
+from common.flask_security import init_security
 
 from iztro_chart import build_professional_chart
 
-app = Flask(__name__)
 
+def create_app(testing: bool = False) -> Flask:
+    app = Flask(__name__)
+    limiter = init_security(app, testing=testing)
 
-def parse_form() -> tuple[datetime | None, str | None, str | None]:
-    y = request.form.get("year", type=int)
-    m = request.form.get("month", type=int)
-    d = request.form.get("day", type=int)
-    h = request.form.get("hour", type=int, default=12)
-    mi = request.form.get("minute", type=int, default=0)
-    gender = request.form.get("gender", type=str)
-    if y is None or m is None or d is None:
-        return None, None, "请输入合法的公历日期。"
-    if gender not in ("男", "女"):
-        return None, None, "请选择性别（全量紫微依赖性别）。"
-    try:
-        return datetime(y, m, d, h, mi), gender, None
-    except ValueError:
-        return None, None, "请输入合法的公历日期时间。"
-
-
-@app.route("/", methods=["GET", "POST"])
-def index():
-    result = None
-    error = None
-    ai_report = None
-    ai_error = None
-    echo_form = None
-    if request.method == "POST":
-        action = (request.form.get("action") or "pan").strip()
-        dt, gender, err = parse_form()
-        if err:
-            error = err
-        elif dt is None:
-            error = "输入有误。"
-        else:
-            echo_form = {
-                "year": dt.year,
-                "month": dt.month,
-                "day": dt.day,
-                "hour": dt.hour,
-                "minute": dt.minute,
-                "gender": gender,
-            }
-            try:
-                result = build_professional_chart(
-                    dt.year,
-                    dt.month,
-                    dt.day,
-                    dt.hour,
-                    dt.minute,
-                    gender,
-                )
-            except Exception as exc:  # noqa: BLE001
-                error = f"排盘失败（请确认已安装 py-iztro 与 pythonmonkey）：{exc}"
-                result = None
-            if result is not None and action == "ai_report":
+    def index():
+        result = None
+        error = None
+        ai_report = None
+        ai_error = None
+        echo_form = None
+        if request.method == "POST":
+            action = (request.form.get("action") or "pan").strip()
+            birth, err = parse_birth_form(
+                request.form,
+                gender_required_hint="请选择性别（全量紫微依赖性别）。",
+            )
+            if err:
+                error = err
+            elif birth is None:
+                error = "输入有误。"
+            else:
+                dt = birth.dt
+                gender = birth.gender_cn
+                echo_form = {
+                    "year": dt.year,
+                    "month": dt.month,
+                    "day": dt.day,
+                    "hour": dt.hour,
+                    "minute": dt.minute,
+                    "gender": gender,
+                }
                 try:
-                    ai_report = generate_ziwei_report(result)
-                except AiReportError as exc:
-                    ai_error = str(exc)
-    return render_template(
-        "index.html",
-        result=result,
-        error=error,
-        echo_form=echo_form,
-        ai_report=ai_report,
-        ai_error=ai_error,
-    )
+                    result = build_professional_chart(
+                        dt.year,
+                        dt.month,
+                        dt.day,
+                        dt.hour,
+                        dt.minute,
+                        gender,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    error = f"排盘失败（请确认已安装 py-iztro 与 pythonmonkey）：{exc}"
+                    result = None
+                if result is not None and action == "ai_report":
+                    try:
+                        ai_report = generate_ziwei_report(result)
+                    except AiReportError as exc:
+                        ai_error = str(exc)
+        return render_template(
+            "index.html",
+            result=result,
+            error=error,
+            echo_form=echo_form,
+            ai_report=ai_report,
+            ai_error=ai_error,
+        )
+
+    if limiter.enabled:
+        index = limiter.limit("120 per minute", methods=["POST"])(index)
+    app.add_url_rule("/", "index", index, methods=["GET", "POST"])
+    return app
+
+
+app = create_app(testing=False)
 
 
 if __name__ == "__main__":

@@ -52,6 +52,33 @@ pytest
 
 生产或对外监听时建议关闭 Flask 调试页：`export FLASK_DEBUG=false`。
 
+**安全相关环境变量（对外部署时请设置）：**
+
+| 变量 | 说明 |
+|------|------|
+| `FLASK_SECRET_KEY` | 用于 CSRF 与会话签名，**勿用默认值**；可 `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `MAX_CONTENT_LENGTH` | 请求体上限（字节），默认 `524288`（512KB） |
+| `FLASK_DISABLE_CSRF` | 设为 `1` 可关闭 CSRF 校验（仅调试，**勿用于公网**） |
+| `FLASK_DISABLE_RATELIMIT` | 设为 `1` 关闭 POST 限流（默认每 IP 每分钟 120 次 POST） |
+| `RATELIMIT_STORAGE_URI` | 多进程限流可改为 Redis，如 `redis://localhost:6379` |
+
+对外请放在 **HTTPS反向代理**（nginx、Caddy 等）后面，由代理终结 TLS。
+
+### 生产进程示例（gunicorn）
+
+在仓库根目录已安装依赖的前提下（`pip install -r requirements.txt`）：
+
+```bash
+export FLASK_DEBUG=false
+export FLASK_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
+
+# 八字（`--factory` 调用 `create_app`）
+cd bazi-web && gunicorn --factory -w 1 -b 127.0.0.1:5001 'app:create_app'
+
+# 紫微（建议 workers=1，与 pythonmonkey 兼容性更稳）
+cd ziwei-web && gunicorn --factory -w 1 -b 127.0.0.1:5002 'app:create_app'
+```
+
 ### 运行
 
 ```bash
