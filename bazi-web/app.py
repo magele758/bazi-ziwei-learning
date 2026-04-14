@@ -1,10 +1,18 @@
 from __future__ import annotations
 
+import sys
 from collections import Counter
 from datetime import datetime
+from pathlib import Path
 
 from flask import Flask, render_template, request
 from lunar_python import Solar
+
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from common.ai_report import AiReportError, generate_bazi_report
 
 app = Flask(__name__)
 
@@ -133,13 +141,25 @@ def yun_rows(ec, gender: int) -> tuple[dict, list[dict], list[dict]]:
 def index():
     result = None
     error = None
+    ai_report = None
+    ai_error = None
+    echo_form = None
     if request.method == "POST":
+        action = (request.form.get("action") or "pan").strip()
         dt, gender, err = parse_form()
         if err:
             error = err
         elif dt is None:
             error = "输入有误。"
         else:
+            echo_form = {
+                "year": dt.year,
+                "month": dt.month,
+                "day": dt.day,
+                "hour": dt.hour,
+                "minute": dt.minute,
+                "gender": "男" if gender == 1 else "女",
+            }
             solar = Solar.fromYmdHms(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0)
             lunar = solar.getLunar()
             ec = lunar.getEightChar()
@@ -177,7 +197,19 @@ def index():
                 "dayun": dayun,
                 "liunian_first_yun": liunian,
             }
-    return render_template("index.html", result=result, error=error)
+            if action == "ai_report":
+                try:
+                    ai_report = generate_bazi_report(result)
+                except AiReportError as exc:
+                    ai_error = str(exc)
+    return render_template(
+        "index.html",
+        result=result,
+        error=error,
+        echo_form=echo_form,
+        ai_report=ai_report,
+        ai_error=ai_error,
+    )
 
 
 if __name__ == "__main__":

@@ -29,6 +29,7 @@
 ```
 八字和紫薇/
 ├── README.md          # 本文件：二者区分与总览
+├── common/            # 共用模块（如 AI 解读，OpenAI 兼容 API）
 ├── bazi-web/          # 四柱八字 Web（原理见该目录 README）
 └── ziwei-web/         # 紫微斗数 Web（原理见该目录 README）
 ```
@@ -58,6 +59,19 @@ cd ziwei-web && python app.py
 ```
 
 **若紫微一点查询终端/浏览器就闪退：**不要用带**热重载**的方式启动（例如 `flask run` 默认会启两个进程）。请用上面的 `python app.py`（已关闭 `use_reloader`），或 `flask run --no-reload`。
+
+## AI 解读报告（可选）
+
+排盘成功后页面有「生成 AI 解读」按钮。服务端将**当前排盘摘要**发往 **OpenAI 兼容**的 Chat Completions 接口（默认 `https://api.openai.com/v1`），**API Key 只读环境变量**，不会出现在浏览器。
+
+```bash
+export OPENAI_API_KEY="sk-..."
+# 可选：自建或第三方兼容网关
+# export OPENAI_BASE_URL="https://api.example.com/v1"
+# export OPENAI_MODEL="gpt-4o-mini"
+```
+
+依赖：`httpx`（已写入各子目录 `requirements.txt`）。请注意：**生辰与性别会随请求发送到模型服务商**，若介意隐私请使用本地模型或不要点击该按钮。
 
 ## 免责声明
 

@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+import sys
 from datetime import datetime
+from pathlib import Path
 
 from flask import Flask, render_template, request
+
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from common.ai_report import AiReportError, generate_ziwei_report
 
 from iztro_chart import build_professional_chart
 
@@ -30,13 +38,25 @@ def parse_form() -> tuple[datetime | None, str | None, str | None]:
 def index():
     result = None
     error = None
+    ai_report = None
+    ai_error = None
+    echo_form = None
     if request.method == "POST":
+        action = (request.form.get("action") or "pan").strip()
         dt, gender, err = parse_form()
         if err:
             error = err
         elif dt is None:
             error = "输入有误。"
         else:
+            echo_form = {
+                "year": dt.year,
+                "month": dt.month,
+                "day": dt.day,
+                "hour": dt.hour,
+                "minute": dt.minute,
+                "gender": gender,
+            }
             try:
                 result = build_professional_chart(
                     dt.year,
@@ -48,7 +68,20 @@ def index():
                 )
             except Exception as exc:  # noqa: BLE001
                 error = f"排盘失败（请确认已安装 py-iztro 与 pythonmonkey）：{exc}"
-    return render_template("index.html", result=result, error=error)
+                result = None
+            if result is not None and action == "ai_report":
+                try:
+                    ai_report = generate_ziwei_report(result)
+                except AiReportError as exc:
+                    ai_error = str(exc)
+    return render_template(
+        "index.html",
+        result=result,
+        error=error,
+        echo_form=echo_form,
+        ai_report=ai_report,
+        ai_error=ai_error,
+    )
 
 
 if __name__ == "__main__":

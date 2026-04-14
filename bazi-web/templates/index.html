@@ -74,7 +74,7 @@
           </select>
         </label>
       </div>
-      <button type="submit">全量排盘</button>
+      <button type="submit" name="action" value="pan">全量排盘</button>
     </form>
 
     {% if error %}
@@ -278,6 +278,31 @@
         <li>{{ el }}：{{ n }}</li>
         {% endfor %}
       </ul>
+
+      {% if echo_form and result %}
+      <section class="card ai-card">
+        <h3>AI 解读报告</h3>
+        <p class="muted-note">使用服务端环境变量 <code>OPENAI_API_KEY</code> 调用 OpenAI 兼容接口；排盘摘要由服务器发给模型，密钥不会出现在浏览器。可选：<code>OPENAI_BASE_URL</code>、<code>OPENAI_MODEL</code>（默认 gpt-4o-mini）。</p>
+        <form method="post" class="ai-report-form">
+          <input type="hidden" name="year" value="{{ echo_form.year }}" />
+          <input type="hidden" name="month" value="{{ echo_form.month }}" />
+          <input type="hidden" name="day" value="{{ echo_form.day }}" />
+          <input type="hidden" name="hour" value="{{ echo_form.hour }}" />
+          <input type="hidden" name="minute" value="{{ echo_form.minute }}" />
+          <input type="hidden" name="gender" value="{{ echo_form.gender }}" />
+          <button type="submit" name="action" value="ai_report">生成 AI 解读</button>
+        </form>
+      </section>
+      {% endif %}
+      {% if ai_error %}
+      <p class="err">{{ ai_error }}</p>
+      {% endif %}
+      {% if ai_report %}
+      <article class="card ai-report">
+        <h3>模型解读（仅供参考）</h3>
+        <div class="ai-report-body">{{ ai_report }}</div>
+      </article>
+      {% endif %}
     </section>
     {% endif %}
   </main>

@@ -483,3 +483,35 @@ code {
   font-size: 0.86rem;
   line-height: 1.55;
 }
+
+.ai-card {
+  margin-top: 20px;
+}
+
+.ai-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+
+.ai-report-form {
+  margin-top: 10px;
+}
+
+.ai-report {
+  margin-top: 16px;
+}
+
+.ai-report h3 {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+
+.ai-report-body {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.92rem;
+  line-height: 1.75;
+  color: #e2e5f0;
+}
