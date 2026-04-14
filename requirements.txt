@@ -1,0 +1,5 @@
+# 八字 + 紫微 合并安装（子项目 requirements 的并集）
+-r bazi-web/requirements.txt
+-r ziwei-web/requirements.txt
+# 自检
+pytest>=8.0

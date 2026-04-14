@@ -4,22 +4,11 @@ from __future__ import annotations
 
 import threading
 
+from common.ziwei_time import hour_to_iztro_time_index
 from py_iztro import Astro
 
 _astro_lock = threading.Lock()
 _astro_singleton: Astro | None = None
-
-
-def hour_to_iztro_time_index(hour: int) -> int:
-    """
-    将0–23 时映射为 iztro 时辰序号 0–12。
-    0=早子时(00:00起)，12=晚子时(23:00起)；其余为丑–亥。
-    """
-    if hour == 0:
-        return 0
-    if hour == 23:
-        return 12
-    return (hour + 1) // 2
 
 
 def fmt_star(s: dict) -> str:

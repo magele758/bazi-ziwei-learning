@@ -1,0 +1,17 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["bazi-web", "ziwei-web", "common", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# 需在插入仓库根目录后再 import common
+"bazi-web/app.py" = ["E402"]
+"ziwei-web/app.py" = ["E402"]

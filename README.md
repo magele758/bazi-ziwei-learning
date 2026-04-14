@@ -41,8 +41,16 @@
 ```bash
 conda create -n mingli-web python=3.11 -y
 conda activate mingli-web
-pip install -r bazi-web/requirements.txt -r ziwei-web/requirements.txt
+pip install -r requirements.txt
 ```
+
+自检（不启动服务）：
+
+```bash
+pytest
+```
+
+生产或对外监听时建议关闭 Flask 调试页：`export FLASK_DEBUG=false`。
 
 ### 运行
 

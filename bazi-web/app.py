@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from collections import Counter
 from datetime import datetime
@@ -76,10 +77,46 @@ def wuxing_counter(pillars: list[str]) -> Counter[str]:
 
 def pillar_rows(ec) -> list[dict]:
     specs = [
-        ("年", ec.getYear, ec.getYearGan, ec.getYearZhi, ec.getYearHideGan, ec.getYearShiShenGan, ec.getYearShiShenZhi, ec.getYearDiShi),
-        ("月", ec.getMonth, ec.getMonthGan, ec.getMonthZhi, ec.getMonthHideGan, ec.getMonthShiShenGan, ec.getMonthShiShenZhi, ec.getMonthDiShi),
-        ("日", ec.getDay, ec.getDayGan, ec.getDayZhi, ec.getDayHideGan, ec.getDayShiShenGan, ec.getDayShiShenZhi, ec.getDayDiShi),
-        ("时", ec.getTime, ec.getTimeGan, ec.getTimeZhi, ec.getTimeHideGan, ec.getTimeShiShenGan, ec.getTimeShiShenZhi, ec.getTimeDiShi),
+        (
+            "年",
+            ec.getYear,
+            ec.getYearGan,
+            ec.getYearZhi,
+            ec.getYearHideGan,
+            ec.getYearShiShenGan,
+            ec.getYearShiShenZhi,
+            ec.getYearDiShi,
+        ),
+        (
+            "月",
+            ec.getMonth,
+            ec.getMonthGan,
+            ec.getMonthZhi,
+            ec.getMonthHideGan,
+            ec.getMonthShiShenGan,
+            ec.getMonthShiShenZhi,
+            ec.getMonthDiShi,
+        ),
+        (
+            "日",
+            ec.getDay,
+            ec.getDayGan,
+            ec.getDayZhi,
+            ec.getDayHideGan,
+            ec.getDayShiShenGan,
+            ec.getDayShiShenZhi,
+            ec.getDayDiShi,
+        ),
+        (
+            "时",
+            ec.getTime,
+            ec.getTimeGan,
+            ec.getTimeZhi,
+            ec.getTimeHideGan,
+            ec.getTimeShiShenGan,
+            ec.getTimeShiShenZhi,
+            ec.getTimeDiShi,
+        ),
     ]
     rows = []
     for label, gz_f, gan_f, zhi_f, hide_f, ssg_f, ssz_f, dishi_f in specs:
@@ -213,4 +250,5 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5001, debug=True, use_reloader=False, threaded=True)
+    _dbg = os.environ.get("FLASK_DEBUG", "true").lower() in ("1", "true", "yes")
+    app.run(host="127.0.0.1", port=5001, debug=_dbg, use_reloader=False, threaded=True)

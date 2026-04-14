@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -87,4 +88,5 @@ def index():
 if __name__ == "__main__":
     # debug 重载子进程会导致 pythonmonkey/内嵌 JS 引擎崩溃，必须关闭 use_reloader
     # threaded=False：内嵌 JS 运行时与多线程并发兼容性因环境而异，单线程更稳
-    app.run(host="127.0.0.1", port=5002, debug=True, use_reloader=False, threaded=False)
+    _dbg = os.environ.get("FLASK_DEBUG", "true").lower() in ("1", "true", "yes")
+    app.run(host="127.0.0.1", port=5002, debug=_dbg, use_reloader=False, threaded=False)

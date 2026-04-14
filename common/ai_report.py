@@ -46,18 +46,16 @@ def _chat(messages: list[dict[str, str]], *, timeout: float = 120.0) -> str:
             r.raise_for_status()
             data = r.json()
     except httpx.HTTPStatusError as e:
-        detail = ""
-        try:
-            detail = e.response.text[:500]
-        except Exception:
-            pass
-        raise AiReportError(f"模型 API 返回错误 HTTP {e.response.status_code}。{detail}") from e
+        raise AiReportError(
+            f"模型 API 返回错误 HTTP {e.response.status_code}。"
+            "请检查 OPENAI_BASE_URL、OPENAI_MODEL 与 OPENAI_API_KEY 是否有效。"
+        ) from e
     except httpx.RequestError as e:
         raise AiReportError(f"无法连接模型 API：{e}") from e
     try:
         return (data["choices"][0]["message"]["content"] or "").strip()
     except (KeyError, IndexError, TypeError) as e:
-        raise AiReportError(f"模型响应格式异常：{data!r}") from e
+        raise AiReportError("模型响应格式异常，请稍后重试或更换模型。") from e
 
 
 def bazi_user_content(result: dict) -> str:
@@ -116,7 +114,8 @@ def ziwei_user_content(result: dict) -> str:
         },
         "十二宫": palaces,
     }
-    return "以下为由程序排出的紫微斗数摘要（JSON）：\n```json\n" + json.dumps(slim, ensure_ascii=False, indent=2) + "\n```"
+    body = json.dumps(slim, ensure_ascii=False, indent=2)
+    return "以下为由程序排出的紫微斗数摘要（JSON）：\n```json\n" + body + "\n```"
 
 
 def generate_bazi_report(result: dict) -> str:
